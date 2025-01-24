@@ -1,0 +1,12 @@
+venv
+
+# Generative model files
+config.json
+*.jsonl
+
+#Bert Files
+
+bert*
+
+# Cache
+*.pyc
