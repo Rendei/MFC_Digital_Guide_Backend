@@ -70,10 +70,10 @@ async def generate_roadmap(data: RequestModel):
                     },
                     {
                         "role": "user",
-                        "content": f"You are provided with text of a document, you will need to read this text carefully. "
-                                   f"Make a roadmap (list of tasks) to get what users wants. Answer in russian language. "
-                                   f"User request: {user_request}, "
-                                   f"Document text: {document_text}",
+                        "content": f"Тебе предоставляется текст документа, необходимо внимательно прочитать этот текст."
+                                   f"Составь дорожную карту (список задач), чтобы получить то, что хочет пользователь."
+                                   f"Запрос пользователя: {user_request}, "
+                                   f"Текст документа: {document_text}",
                     },
                 ],
                 "max_completion_tokens": 1000,
