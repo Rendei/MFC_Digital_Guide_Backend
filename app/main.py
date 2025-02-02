@@ -10,22 +10,6 @@ import os
 from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer
 
-documents_text_path = "data/document_text.json"
-
-if not os.path.exists(documents_text_path):
-    raise FileNotFoundError(f"Documents text file not found at {documents_text_path}")
-
-with open(documents_text_path, "r") as documents_text_file:
-    documents = json.load(documents_text_file)
-
-document_names_path = "data/document_names.json"
-
-if not os.path.exists(document_names_path):
-    raise FileNotFoundError(f"Document names file not found at {document_names_path}")
-
-with open(document_names_path, "r") as documents_names_file:
-    document_names = json.load(documents_names_file)
-
 document_ids = list(documents.keys())
 document_texts = [" ".join(documents[doc_id]) for doc_id in document_ids]
 document_names_list = [document_names.get(doc_id, "") for doc_id in document_ids]
