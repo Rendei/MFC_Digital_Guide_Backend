@@ -1,29 +1,48 @@
 import re
-from fastapi import FastAPI, HTTPException
+import faiss
+from fastapi import FastAPI, Query, HTTPException
+import numpy as np
 from pydantic import BaseModel
 from openai import OpenAI
 import json
 import time
 import os
+from rank_bm25 import BM25Okapi
+from sentence_transformers import SentenceTransformer
 
+documents_text_path = "data/document_text.json"
 
-config_path = "config.json"
-if not os.path.exists(config_path):
-    raise FileNotFoundError(f"Config file not found at {config_path}")
-
-with open(config_path, "r") as config_file:
-    config = json.load(config_file)
-    api_key = config.get("api_key")
-
-if not api_key:
-    raise ValueError("API key not found in config file")
-
-documents_text_path = "document_text.json"
 if not os.path.exists(documents_text_path):
     raise FileNotFoundError(f"Documents text file not found at {documents_text_path}")
 
 with open(documents_text_path, "r") as documents_text_file:
-    documents_text = json.load(documents_text_file)
+    documents = json.load(documents_text_file)
+
+document_names_path = "data/document_names.json"
+
+if not os.path.exists(document_names_path):
+    raise FileNotFoundError(f"Document names file not found at {document_names_path}")
+
+with open(document_names_path, "r") as documents_names_file:
+    document_names = json.load(documents_names_file)
+
+document_ids = list(documents.keys())
+document_texts = [" ".join(documents[doc_id]) for doc_id in document_ids]
+document_names_list = [document_names.get(doc_id, "") for doc_id in document_ids]
+
+def tokenize(text):
+    return text.lower().split() 
+
+bm25_text = BM25Okapi([tokenize(text) for text in document_texts])
+bm25_names = BM25Okapi([tokenize(name) for name in document_names_list])
+
+model = SentenceTransformer("sentence-transformers/distiluse-base-multilingual-cased-v2")
+
+document_embeddings = model.encode(document_texts, convert_to_numpy=True)
+
+dimension = document_embeddings.shape[1]
+index = faiss.IndexFlatL2(dimension)
+index.add(document_embeddings)
 
 app = FastAPI()
 
@@ -48,13 +67,43 @@ def clean_and_format_text(raw_text):
 
     return text.strip()
 
+@app.get("/search")
+def search_documents(query: str = Query(..., description="User search query"), top_k: int = 5):
+    """Hybrid search using BM25 (names + text) and embeddings"""
+
+    bm25_text_scores = bm25_text.get_scores(tokenize(query))
+    bm25_name_scores = bm25_names.get_scores(tokenize(query))
+
+    combined_bm25_scores = 0.7 * bm25_text_scores + 0.3 * bm25_name_scores
+
+    top_bm25_indices = np.argsort(combined_bm25_scores)[::-1][:top_k]
+    top_bm25_ids = [document_ids[idx] for idx in top_bm25_indices]
+
+    query_embedding = model.encode([query], convert_to_numpy=True)
+
+    faiss_subset = np.array([document_embeddings[idx] for idx in top_bm25_indices])
+    faiss_index = faiss.IndexFlatL2(dimension)
+    faiss_index.add(faiss_subset)
+
+    _, reranked_indices = faiss_index.search(query_embedding, top_k)
+
+    results = [
+        {
+            "document_id": top_bm25_ids[idx],
+            "document_name": document_names.get(top_bm25_ids[idx], "Без названия"),
+            "sections": documents[top_bm25_ids[idx]]
+        }
+        for idx in reranked_indices[0]
+    ]
+
+    return {"query": query, "results": results}
 
 @app.post("/generate-roadmap/")
 async def generate_roadmap(data: RequestModel):
     document_id = data.document_id
     user_request = data.user_request
 
-    document_text = documents_text[document_id]
+    document_text = documents[document_id]
 
     requests = [
         {
