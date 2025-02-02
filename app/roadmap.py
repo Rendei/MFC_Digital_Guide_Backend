@@ -5,7 +5,7 @@ from data_loader import load_documents
 from utils import clean_and_format_text
 from openai import OpenAI
 
-from app.config import load_config
+from config import load_config
 config = load_config()
 api_key = config.get("api_key")
 
