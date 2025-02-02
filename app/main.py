@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query
-from app.models import RequestModel
-from app.roadmap import generate_roadmap
-from app.search import hybrid_search
+from models import RequestModel
+from roadmap import generate_roadmap
+from search import hybrid_search
 
 
 app = FastAPI()

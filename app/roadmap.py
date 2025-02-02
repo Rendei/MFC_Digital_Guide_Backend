@@ -1,8 +1,8 @@
 import json
 import time
 from fastapi import HTTPException
-from app.data_loader import load_documents
-from app.utils import clean_and_format_text
+from data_loader import load_documents
+from utils import clean_and_format_text
 from openai import OpenAI
 
 from app.config import load_config

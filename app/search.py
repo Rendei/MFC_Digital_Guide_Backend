@@ -2,8 +2,8 @@ import numpy as np
 import faiss
 from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer
-from app.data_loader import load_documents, load_document_names
-from app.utils import tokenize
+from data_loader import load_documents, load_document_names
+from utils import tokenize
 
 
 documents = load_documents()
