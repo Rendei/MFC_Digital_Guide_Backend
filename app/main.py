@@ -14,8 +14,6 @@ document_ids = list(documents.keys())
 document_texts = [" ".join(documents[doc_id]) for doc_id in document_ids]
 document_names_list = [document_names.get(doc_id, "") for doc_id in document_ids]
 
-def tokenize(text):
-    return text.lower().split() 
 
 bm25_text = BM25Okapi([tokenize(text) for text in document_texts])
 bm25_names = BM25Okapi([tokenize(name) for name in document_names_list])
@@ -39,17 +37,6 @@ class RequestModel(BaseModel):
     document_id: str
     user_request: str
 
-
-def clean_and_format_text(raw_text):
-    text = raw_text.replace("\\n", "\n")
-
-    text = re.sub(r"(?<=\n)(\d+\.|\*|-) +", r"\1 ", text)
-    
-    text = "\n".join(line.strip() for line in text.splitlines())
-
-    text = re.sub(r"(?<!\n)\* ", r"\n* ", text)
-
-    return text.strip()
 
 @app.get("/search")
 def search_documents(query: str = Query(..., description="User search query"), top_k: int = 5):
