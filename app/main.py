@@ -1,22 +1,10 @@
-import re
-import faiss
-from fastapi import FastAPI, Query, HTTPException
-import numpy as np
-from pydantic import BaseModel
-from openai import OpenAI
-import json
-import time
-import os
+from fastapi import FastAPI, Query
+from app.models import RequestModel
 from app.roadmap import generate_roadmap
 from app.search import hybrid_search
 
 
 app = FastAPI()
-
-class RequestModel(BaseModel):
-    document_id: str
-    user_request: str
-
 
 @app.get("/search")
 def search_documents(query: str = Query(..., description="User search query"), top_k: int = 5):
@@ -25,6 +13,7 @@ def search_documents(query: str = Query(..., description="User search query"), t
     """
     results = hybrid_search(query, top_k)
     return {"query": query, "results": results}
+
 
 @app.post("/generate-roadmap/")
 async def roadmap_endpoint(data: RequestModel):
