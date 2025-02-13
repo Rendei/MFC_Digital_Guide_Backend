@@ -1,4 +1,5 @@
 venv
+alembic.ini
 
 # Generative model files
 config.json
