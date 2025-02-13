@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query
 from models import RequestModel
-from roadmap import generate_roadmap
+from roadmap import generate_roadmap_batch, generate_roadmap_livetime
 from search import hybrid_search
 
 
@@ -20,7 +20,7 @@ async def roadmap_endpoint(data: RequestModel):
     """
     Generates a roadmap (step-by-step tasks) based on a user request and a specified document.
     """
-    roadmap_text = generate_roadmap(data.document_id, data.user_request)
+    roadmap_text = generate_roadmap_batch(data.document_id, data.user_request)
     return {"status": "success", "roadmap": roadmap_text}
 
 if __name__ == "__main__":

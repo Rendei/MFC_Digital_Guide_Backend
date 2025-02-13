@@ -18,7 +18,7 @@ client = OpenAI(
 documents = load_documents()
 
 
-def generate_roadmap(document_id: str, user_request: str):
+def generate_roadmap_batch(document_id: str, user_request: str):
     if document_id not in documents:
         raise HTTPException(status_code=404, detail="Document not found")
 
@@ -83,3 +83,37 @@ def generate_roadmap(document_id: str, user_request: str):
             raise HTTPException(status_code=500, detail=f"Batch failed with status: {batch_status.status}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def generate_roadmap_livetime(document_id: str, user_request: str):
+    if document_id not in documents:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    document_text = documents[document_id]
+
+    chat_completion = client.chat.completions.create(
+        model="klusterai/Meta-Llama-3.3-70B-Instruct-Turbo",
+        messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful assistant, that provides users with step by step instructions",
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Тебе предоставляется текст документа, необходимо внимательно прочитать этот текст. "
+                            f"Составь дорожную карту (список задач), чтобы получить то, что хочет пользователь. "
+                            f"Запрос пользователя: {user_request}, Текст документа: {document_text}"
+                        ),
+                    },
+                ],
+    )
+
+    chat_completion_json = chat_completion.to_dict()
+
+    #try:
+    road_map_text = chat_completion_json["choices"][0]["message"]["content"]
+    cleaned_text = clean_and_format_text(road_map_text)
+    return cleaned_text
+    #except (KeyError, json.JSONDecodeError) as e:
+        #raise HTTPException(status_code=500, detail=f"Error processing the response: {str(e)}")
