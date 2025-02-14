@@ -1,11 +1,11 @@
 import json
 import time
 from fastapi import HTTPException
-from data_loader import load_documents
-from utils import clean_and_format_text
+from app.data_loader import load_documents
+from app.utils import clean_and_format_text
 from openai import OpenAI
 
-from config import load_config
+from app.config import load_config
 config = load_config()
 api_key = config.get("api_key")
 

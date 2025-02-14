@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Query, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas import RequestModel
-from database import get_db
-from roadmap import generate_roadmap_batch, generate_roadmap_livetime
-from search import hybrid_search
-from models import SearchQuery, Roadmap
+from app.schemas import RequestModel
+from app.database import get_db
+from app.roadmap import generate_roadmap_batch, generate_roadmap_livetime
+from app.search import hybrid_search
+from app.models import SearchQuery, Roadmap
 
 
 app = FastAPI()
