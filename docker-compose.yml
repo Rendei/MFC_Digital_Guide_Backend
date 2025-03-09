@@ -7,7 +7,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mfc_db
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/mfc_db
     ports:
       - "8000:8000"
     volumes:
