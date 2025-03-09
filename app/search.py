@@ -43,7 +43,7 @@ def hybrid_search(query: str, top_k: int = 5):
         {
             "document_id": top_bm25_ids[idx],
             "document_name": document_names.get(top_bm25_ids[idx], "Без названия"),
-            "sections": documents[top_bm25_ids[idx]]
+            #  "sections": documents[top_bm25_ids[idx]]
         }
         for idx in reranked_indices[0]
     ]
