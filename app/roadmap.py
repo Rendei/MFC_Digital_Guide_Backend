@@ -2,10 +2,13 @@ import json
 import time
 from fastapi import HTTPException
 from app.data_loader import load_documents
-from app.utils import clean_and_format_text
+from app.utils import clean_and_format_text, join_strings_in_dict
 from openai import OpenAI
 
 from app.config import load_config
+from app.metrics.calculate_roadmap_metrics import evaluate_text
+# from metrics.calculate_roadmap_metrics import evaluate_text
+
 config = load_config()
 api_key = config.get("api_key")
 
@@ -16,21 +19,21 @@ client = OpenAI(
 )
 
 documents = load_documents()
+documents = join_strings_in_dict(documents)
 
 
-def generate_roadmap_batch(document_id: str, user_request: str):
+def generate_roadmap_batch(document_id: str, user_request: str, model_name="Meta-Llama-3.3-70B-Instruct-Turbo"):
     if document_id not in documents:
         raise HTTPException(status_code=404, detail="Document not found")
 
     document_text = documents[document_id]
-
     requests = [
         {
             "custom_id": "request-1",
             "method": "POST",
             "url": "/v1/chat/completions",
             "body": {
-                "model": "klusterai/Meta-Llama-3.3-70B-Instruct-Turbo",
+                "model": f"klusterai/{model_name}",
                 "messages": [
                     {
                         "role": "system",
@@ -76,7 +79,9 @@ def generate_roadmap_batch(document_id: str, user_request: str):
                 results_json = json.loads(raw_results.decode("utf-8"))
                 road_map_text = results_json["response"]["body"]["choices"][0]["message"]["content"]
                 cleaned_text = clean_and_format_text(road_map_text)
-                return cleaned_text
+                metrics = evaluate_text(cleaned_text, document_text)
+
+                return cleaned_text, metrics
             except (KeyError, json.JSONDecodeError) as e:
                 raise HTTPException(status_code=500, detail=f"Error processing the response: {str(e)}")
         else:
